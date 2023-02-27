@@ -1,5 +1,6 @@
 ﻿using Azure.Identity;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace MAUIwithMSGRaph
     {
         private readonly string[] _scopes = new[] { "User.Read" };
         private const string ClientId = "CLIENT_ID";
+        private const string TenantId = "common";
         private GraphServiceClient _client;
 
         public GraphService()
@@ -28,6 +30,7 @@ namespace MAUIwithMSGRaph
                 var options = new InteractiveBrowserCredentialOptions
                 {
                     ClientId = ClientId,
+                    TenantId = TenantId,
                     AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
                     RedirectUri = new Uri("https://login.microsoftonline.com/common/oauth2/nativeclient"),
                 };
@@ -47,7 +50,7 @@ namespace MAUIwithMSGRaph
         {
             try
             {
-                return await _client.Me.Request().GetAsync();
+                return await _client.Me.GetAsync();
             }
             catch (Exception ex)
             {

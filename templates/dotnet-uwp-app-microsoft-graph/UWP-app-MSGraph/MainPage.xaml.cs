@@ -17,6 +17,8 @@ using Microsoft.Graph;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
+using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions.Authentication;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -34,7 +36,7 @@ namespace UWP_app_MSGraph
         // Below are the clientId (Application Id) of your app registration and the tenant information.
         // You have to replace:
         // - the content of ClientID with the Application Id for your app registration
-        private const string ClientId = "client-id-from-app-registration";
+        private const string ClientId = "CLIENT_ID";
 
         private const string Tenant = "common"; // Alternatively "[Enter your tenant, as obtained from the Azure portal, e.g. kko365.onmicrosoft.com]"
         private const string Authority = "https://login.microsoftonline.com/" + Tenant;
@@ -61,7 +63,7 @@ namespace UWP_app_MSGraph
                 GraphServiceClient graphClient = await SignInAndInitializeGraphServiceClient(scopes);
 
                 // Call the /me endpoint of Graph
-                User graphUser = await graphClient.Me.Request().GetAsync();
+                User graphUser = await graphClient.Me.GetAsync();
 
                 // Go back to the UI thread to make changes to the UI
                 await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
@@ -129,11 +131,9 @@ namespace UWP_app_MSGraph
         /// <returns>GraphServiceClient</returns>
         private async static Task<GraphServiceClient> SignInAndInitializeGraphServiceClient(string[] scopes)
         {
-            GraphServiceClient graphClient = new GraphServiceClient(MSGraphURL,
-                new DelegateAuthenticationProvider(async (requestMessage) =>
-                {
-                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", await SignInUserAndGetTokenUsingMSAL(scopes));
-                }));
+            var tokenProvider = new TokenProvider(SignInUserAndGetTokenUsingMSAL, scopes);
+            var authProvider = new BaseBearerTokenAuthenticationProvider(tokenProvider);
+            var graphClient = new GraphServiceClient(authProvider, MSGraphURL);
 
             return await Task.FromResult(graphClient);
         }
