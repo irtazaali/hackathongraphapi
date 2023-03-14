@@ -27,5 +27,5 @@ https://graph.microsoft.com
 
 ![Contacts](https://github.com/irtazaali/hackathongraphapi/blob/release/alpha/templates/dotnet-blazor-server-app-microsoft-graph/Z02-Graph-Contact-View-Working.png)
 
-![Contacts](https://github.com/irtazaali/hackathongraphapi/blob/release/alpha/templates/dotnet-blazor-server-app-microsoft-graph/Z04-Graph-Calendar-Event-View-Working.png)
+![Calendar Events](https://github.com/irtazaali/hackathongraphapi/blob/release/alpha/templates/dotnet-blazor-server-app-microsoft-graph/Z04-Graph-Calendar-Event-View-Working.png)
 
