@@ -1,5 +1,5 @@
 
-# Project Title
+## Project Title
 
 Sample Blazor App to connect with Graph API for viewing calendar events and contacts
 
@@ -21,4 +21,11 @@ https://graph.microsoft.com
   GET /v1.0/me/events
 ```
 
+
+
+## Screenshots
+
+![Contacts](https://github.com/irtazaali/hackathongraphapi/blob/release/alpha/templates/dotnet-blazor-server-app-microsoft-graph/Z02-Graph-Contact-View-Working.png)
+
+![Contacts](https://github.com/irtazaali/hackathongraphapi/blob/release/alpha/templates/dotnet-blazor-server-app-microsoft-graph/Z04-Graph-Calendar-Event-View-Working.png)
 
