@@ -1,0 +1,122 @@
+﻿@page "/calendarview"
+@using Microsoft.Identity.Web
+@using Microsoft.Graph
+@using BlazorSample.Data.Graph
+@inject Microsoft.Graph.GraphServiceClient GraphServiceClient
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject BlazorSample.Data.Graph.GraphCalendarClient _graphCalendarClient
+
+<PageTitle>Calendar View</PageTitle>
+
+<h1>Calendar Events</h1>
+@if (user == null)
+{
+    <p><em>Loading...</em></p>
+    @*<a class="btn btn-primary btn-large" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn">Click here to sign in</a>*@
+}
+else
+{
+    <MudPaper xs="6" Class="flex-grow-0 mud-theme-tertiary" Elevation="10">
+        <div class="d-none d-lg-block mud-palette-tertiary rounded" style="height:100%; width:100%;">
+            <MudStack>
+                <MudPaper Class="pa-4 ma-2" Style="@($"color:{Colors.BlueGrey.Darken4}; background:{Colors.Teal.Lighten5};")">
+                    <MudStack Justify="Justify.Center" Spacing="0">
+                        <MudText Typo="Typo.body1">Hi, <strong>@user.DisplayName</strong></MudText>
+                        <MudText Typo="Typo.body2">@user.UserPrincipalName</MudText>
+                        <MudText Typo="Typo.subtitle1">Welcome to MS Graph Hackathon</MudText>
+                    </MudStack>
+                </MudPaper>
+
+                <MudPaper Class="pa-2 ma-2">
+                    <MudTable Elevation="0" ServerData="@(new Func<TableState, Task<TableData<Event>>>(ServerReloadEvents))" Virtualize="true"
+                            LoadingProgressColor="Color.Info" RowsPerPage="10"                          
+                            Hover="false" Dense="true" Bordered="false" Striped="false" @ref="_tableEvents">
+                        <HeaderContent>
+                            <MudTh Style="display:none;">Events</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Subject">
+                                <MudStack Row="true">
+                                    <MudAvatar Image="event.jpg" Style="height:72px; width:72px;" />
+                                    <MudStack Justify="Justify.Center" Spacing="0">
+                                        <MudText Typo="Typo.body1">@context.Subject</MudText>
+                                        <MudText Typo="Typo.caption"><strong>Start:</strong> @FormatDateTimeTimeZone(context.Start)</MudText>
+                                        <MudText Typo="Typo.caption"><strong>End:</strong> @FormatDateTimeTimeZone(context.End)</MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <div style="padding-bottom: 20px;"></div>
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager HideRowsPerPage="true" HidePageNumber="true" HidePagination="true"/>
+                        </PagerContent>
+                    </MudTable>
+
+                </MudPaper>
+            </MudStack>
+        </div>
+    </MudPaper>
+    <MudPaper xs="6" Class="flex-grow-1 mud-theme-secondary" Elevation="10"></MudPaper>
+}   
+
+@code {
+    User? user;
+    private MailboxSettings MailboxSettings { get; set; }
+
+    public IEnumerable<Event> Events { get; private set; }
+    private MudTable<Event> _tableEvents;
+    private int _totalItems;
+    private int _currentPage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            user = await GraphServiceClient.Me.Request().GetAsync();
+        }
+        catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+    }
+
+    public async Task OnGetAsync()
+    {
+        MailboxSettings = await _graphCalendarClient.GetUserMailboxSettings();
+        var userTimeZone = (String.IsNullOrEmpty(MailboxSettings.TimeZone))
+                            ? "Pacific Standard Time" : MailboxSettings.TimeZone;
+        Events = await _graphCalendarClient.GetEvents(userTimeZone);
+
+        _totalItems = Events.Count();
+
+    }
+
+    private async Task<TableData<Event>> ServerReloadEvents(TableState state)
+    {
+        await OnGetAsync();
+
+        return new TableData<Event> { TotalItems = _totalItems, Items = Events };
+    }
+
+    public string FormatDateTimeTimeZone(DateTimeTimeZone value)
+    {
+        // Parse the date/time string from Graph into a DateTime
+        var graphDatetime = value.DateTime;
+        if (DateTime.TryParse(graphDatetime, out DateTime dateTime))
+        {
+            var dateTimeFormat = $"{MailboxSettings.DateFormat} {MailboxSettings.TimeFormat}".Trim();
+            if (!String.IsNullOrEmpty(dateTimeFormat))
+            {
+                return dateTime.ToString(dateTimeFormat);
+            }
+            else
+            {
+                return $"{dateTime.ToShortDateString()} {dateTime.ToShortTimeString()}";
+            }
+        }
+        else
+        {
+            return graphDatetime;
+        }
+    }
+}

@@ -1,0 +1,95 @@
+﻿@page "/contactview"
+@using Microsoft.Identity.Web
+@using Microsoft.Graph
+@using BlazorSample.Data.Graph
+@inject Microsoft.Graph.GraphServiceClient GraphServiceClient
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject BlazorSample.Data.Graph.GraphContactClient _graphContactClient
+
+<PageTitle>Contacts</PageTitle>
+
+<h1>Contacts</h1>
+@if (user == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MudPaper xs="6" Class="flex-grow-0 mud-theme-primary" Elevation="10">
+        <div class="d-none d-lg-block mud-palette-tertiary rounded" style="height:100%; width:100%;">
+            <MudStack>
+                <MudPaper Class="pa-4 ma-2" Style="@($"color:{Colors.BlueGrey.Darken4}; background:{Colors.Teal.Lighten5};")">
+                    <MudStack Justify="Justify.Center" Spacing="0">
+                        <MudText Typo="Typo.body1">Hi, <strong>@user.DisplayName</strong></MudText>
+                        <MudText Typo="Typo.body2">@user.UserPrincipalName</MudText>
+                        <MudText Typo="Typo.subtitle1">Welcome to MS Graph Hackathon</MudText>
+                    </MudStack>
+                </MudPaper>
+
+                <MudPaper Class="pa-2 ma-2">
+                    <MudTable Elevation="0" ServerData="@(new Func<TableState, Task<TableData<Contact>>>(ServerReloadContacts))" Virtualize="true"
+                            LoadingProgressColor="Color.Info" RowsPerPage="10"
+                            Hover="false" Dense="true" Bordered="false" Striped="true" @ref="_tableContacts">
+                        <HeaderContent>
+                            <MudTh Style="display:none;"><MudTableSortLabel T="Event" SortLabel="DisplayName">Contacts</MudTableSortLabel></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Subject">
+                                <MudStack Row="true">
+                                    <MudAvatar Image="phone-call.png" Style="height:72px; width:72px;" />
+                                    <MudStack Justify="Justify.Center" Spacing="0">
+                                        <MudText Typo="Typo.body1">@context.DisplayName</MudText>
+                                        <MudText Typo="Typo.caption">@context.EmailAddresses.FirstOrDefault()?.Address</MudText>
+                                        <MudText Typo="Typo.caption">@context.BusinessPhones.FirstOrDefault()</MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <div style="padding-bottom: 20px;"></div>
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager HideRowsPerPage="true" HidePageNumber="true" HidePagination="true" />
+                        </PagerContent>
+                    </MudTable>
+
+                </MudPaper>
+            </MudStack>
+        </div>
+    </MudPaper>
+    <MudPaper xs="6" Class="flex-grow-1 mud-theme-secondary" Elevation="10">      
+    </MudPaper>
+}   
+
+@code {
+    User? user;
+    public IEnumerable<Contact> Contacts { get; private set; }
+    private MudTable<Contact> _tableContacts;
+    private int _totalItems;
+    private int _currentPage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            user = await GraphServiceClient.Me.Request().GetAsync();
+        }
+        catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+    }
+
+    public async Task OnGetAsync()
+    {
+        Contacts = await _graphContactClient.GetContacts();
+
+        _totalItems = Contacts.Count();
+
+    }
+
+    private async Task<TableData<Contact>> ServerReloadContacts(TableState state)
+    {
+        await OnGetAsync();
+
+        return new TableData<Contact> { TotalItems = _totalItems, Items = Contacts };
+    }    
+}

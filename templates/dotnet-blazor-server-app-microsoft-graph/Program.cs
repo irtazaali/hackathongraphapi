@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Graph = Microsoft.Graph;
 using BlazorSample.Data;
+using BlazorSample.Data.Graph;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,12 +16,12 @@ var builder = WebApplication.CreateBuilder(args);
 var initialScopes = builder.Configuration["DownstreamApi:Scopes"]?.Split(' ');
 
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
-        .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
-            .AddMicrosoftGraph(builder.Configuration.GetSection("DownstreamApi"))
-            .AddInMemoryTokenCaches();
+                .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
+                .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
+                .AddMicrosoftGraph(builder.Configuration.GetSection("DownstreamApi"))
+                .AddInMemoryTokenCaches();
 builder.Services.AddControllersWithViews()
-    .AddMicrosoftIdentityUI();
+                .AddMicrosoftIdentityUI();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -30,8 +31,13 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor()
-    .AddMicrosoftIdentityConsentHandler();
+                .AddMicrosoftIdentityConsentHandler();
 builder.Services.AddSingleton<WeatherForecastService>();
+
+builder.Services.AddScoped<GraphProfileClient>();
+builder.Services.AddScoped<GraphEmailClient>();
+builder.Services.AddScoped<GraphCalendarClient>();
+builder.Services.AddScoped<GraphContactClient>();
 
 var app = builder.Build();
 
