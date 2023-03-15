@@ -1,4 +1,5 @@
 
+[![Hack Together: Microsoft Graph and .NET](https://img.shields.io/badge/Microsoft%20-Hack--Together-orange?style=for-the-badge&logo=microsoft)](https://github.com/microsoft/hack-together)
 ## Project Title
 
 Sample Blazor App to connect with Graph API for viewing calendar events and contacts
